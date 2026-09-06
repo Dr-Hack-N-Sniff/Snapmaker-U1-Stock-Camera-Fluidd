@@ -27,6 +27,14 @@ Edit the existing **UI Camera** entry:
 
 ![Fluidd camera settings](images/fluidd-camera-settings.png)
 
+## Unofficial Community Project
+
+This project is not affiliated with, endorsed by, or supported by Snapmaker.
+
+It modifies startup configuration on the Snapmaker U1 and is provided as-is. Use it at your own risk. Modifications to your printer may affect support or warranty coverage.
+
+This project does not distribute Snapmaker proprietary firmware files.
+
 ## Install
 
 Copy this release directory to the U1, SSH in as root, enter the directory, and run:
@@ -54,6 +62,15 @@ After an update, use:
 cd /oem/printer_data/u1_camera/recovery
 ./repair.sh
 ```
+### After a Snapmaker Firmware Update
+
+Do not blindly restore older configuration files after a firmware update.
+
+Run the included compatibility and repair checks first. The repair process follows:
+
+**Detect → Validate → Back up → Repair**
+
+If the compatibility checks fail, stop and check this repository for an updated release. The repair system is intentionally designed to avoid forcing an older Snapmaker boot configuration onto firmware it does not recognize.
 
 ### Compatibility safety
 
