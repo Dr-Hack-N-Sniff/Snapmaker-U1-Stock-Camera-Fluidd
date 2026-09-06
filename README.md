@@ -10,6 +10,12 @@ The U1 stock service (`unisrv`) captures the MIPI camera to `/tmp/.monitor.jpg`.
 
 The camera has been physically verified at approximately 1 FPS and verified to return automatically after a U1 reboot.
 
+## v1.0.1 automatic camera watchdog
+
+v1.0.1 adds automatic recovery for the stock camera monitor. If `/tmp/.monitor.jpg` stops advancing for 15 seconds, the bridge requests `camera.start_monitor` again through the U1's existing local MQTT interface. Recovery requests are rate-limited to one every 15 seconds. The watchdog does **not** restart `unisrv`, Klipper, Moonraker, or the printer.
+
+Hardware validation on a Snapmaker U1 completed **four automatic recoveries** during the v1.0.1 watchdog test. After each induced/observed camera-monitor stop, frame capture resumed without manually restarting the printer or `unisrv`.
+
 ![Built-in U1 camera working in Fluidd](images/u1-camera-fluidd-working.png)
 
 ## Fluidd camera settings
@@ -26,14 +32,6 @@ Edit the existing **UI Camera** entry:
 - Rotation: None unless desired
 
 ![Fluidd camera settings](images/fluidd-camera-settings.png)
-
-## Unofficial Community Project
-
-This project is not affiliated with, endorsed by, or supported by Snapmaker.
-
-It modifies startup configuration on the Snapmaker U1 and is provided as-is. Use it at your own risk. Modifications to your printer may affect support or warranty coverage.
-
-This project does not distribute Snapmaker proprietary firmware files.
 
 ## Install
 
@@ -62,15 +60,6 @@ After an update, use:
 cd /oem/printer_data/u1_camera/recovery
 ./repair.sh
 ```
-### After a Snapmaker Firmware Update
-
-Do not blindly restore older configuration files after a firmware update.
-
-Run the included compatibility and repair checks first. The repair process follows:
-
-**Detect → Validate → Back up → Repair**
-
-If the compatibility checks fail, stop and check this repository for an updated release. The repair system is intentionally designed to avoid forcing an older Snapmaker boot configuration onto firmware it does not recognize.
 
 ### Compatibility safety
 
@@ -96,4 +85,7 @@ This stops/removes S64 and removes only its boot-hook line. Recovery files are i
 
 ## Release
 
-Initial release: **v1.0.0**.
+Current release: **v1.0.1**.
+
+- v1.0.1: Adds stale-frame watchdog and rate-limited automatic `camera.start_monitor` recovery. Hardware-tested with four automatic recoveries.
+- v1.0.0: Initial stock-camera Fluidd bridge release.

@@ -56,7 +56,7 @@ python3 -m py_compile "$SOURCE_DIR/u1_mjpeg_bridge.py" || fail 'Recovery bridge 
 
 mkdir -p "$REC"
 if [ "$SOURCE_DIR" != "$REC" ]; then
-  for f in install.sh repair.sh status.sh uninstall.sh u1_mjpeg_bridge.py S64u1-camera README.md; do
+  for f in install.sh repair.sh status.sh uninstall.sh u1_mjpeg_bridge.py S64u1-camera README.md CHANGELOG.md; do
     [ -f "$SOURCE_DIR/$f" ] && cp "$SOURCE_DIR/$f" "$REC/"
   done
   chmod 755 "$REC"/*.sh "$REC/S64u1-camera" "$REC/u1_mjpeg_bridge.py" 2>/dev/null || true
