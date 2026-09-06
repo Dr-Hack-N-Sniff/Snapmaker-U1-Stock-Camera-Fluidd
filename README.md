@@ -23,6 +23,14 @@ Hardware validation on a Snapmaker U1 completed **four automatic recoveries** du
 
 ![Built-in U1 camera working in Fluidd](images/u1-camera-fluidd-working.png)
 
+⚠️ Known Issue — Snapmaker App Camera
+
+v1.0.1: When the Fluidd camera bridge is running, enabling the camera from the Snapmaker Device page may cause the Device page to become unresponsive.
+
+The printer and camera continue operating, and the Fluidd camera feed remains functional. Stopping the U1 camera bridge restores normal Snapmaker app camera operation.
+
+This issue is currently being investigated. If you rely on the Snapmaker app camera, you may want to wait for the next update.
+
 ## Fluidd camera settings
 
 Edit the existing **UI Camera** entry:
