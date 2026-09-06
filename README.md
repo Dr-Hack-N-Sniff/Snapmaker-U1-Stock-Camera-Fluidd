@@ -2,6 +2,7 @@
 
 ![U1 Stock Camera Bridge for Fluidd](images/u1-stock-camera-fluidd-v1.0.1.png)
 
+Unofficial community project — not affiliated with or endorsed by Snapmaker.
 
 A self-contained bridge that exposes the Snapmaker U1 built-in MIPI camera in Fluidd while retaining the stock camera service. No Raspberry Pi, external PC, Docker container, or replacement camera firmware is required.
 Unofficial community project — not affiliated with or endorsed by Snapmaker.
