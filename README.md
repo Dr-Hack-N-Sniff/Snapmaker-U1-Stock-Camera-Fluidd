@@ -102,4 +102,4 @@ If this project helped you and you'd like to support continued U1 development, t
   <img src="images/buy-me-a-roll-of-filament.png" alt="Buy me a roll of filament" width="600">
 </a>
 
-Every roll helps fund more testing, tinkering, and future U1 projects.
+
