@@ -98,7 +98,6 @@ Current release: **v1.0.1**.
 
 ## 🖨️ Support the Project
 
-If this project helped you and you'd like to support continued U1 development, testing, and future projects:
 
 <a href="https://buymeacoffee.com/hacknsniff">
   <img src="images/buy-me-a-roll-of-filament.png" alt="Buy me a roll of filament" width="600">
