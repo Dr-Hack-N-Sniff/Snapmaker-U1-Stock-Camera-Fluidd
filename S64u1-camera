@@ -1,0 +1,115 @@
+#!/bin/sh
+
+SCRIPT="/oem/printer_data/u1_camera/u1_mjpeg_bridge.py"
+LOG="/oem/printer_data/u1_camera/u1_camera.log"
+PIDFILE="/var/run/u1_camera.pid"
+IMAGE="/tmp/.monitor.jpg"
+
+start_camera() {
+    echo "Starting U1 stock camera monitor"
+
+    COUNT=0
+    LAST_MTIME=""
+    if [ -f "$IMAGE" ]; then
+        LAST_MTIME="$(stat -c %Y "$IMAGE" 2>/dev/null || true)"
+    fi
+
+    while [ "$COUNT" -lt 15 ]; do
+        mosquitto_pub -h 127.0.0.1 -p 1883 \
+            -t 'camera/request' \
+            -m '{"jsonrpc":"2.0","id":30001,"method":"camera.start_monitor","params":{"domain":"lan","interval":0}}' \
+            >/dev/null 2>&1
+
+        sleep 1
+
+        if [ -f "$IMAGE" ]; then
+            NEW_MTIME="$(stat -c %Y "$IMAGE" 2>/dev/null || true)"
+            if [ -n "$NEW_MTIME" ] && [ "$NEW_MTIME" != "$LAST_MTIME" ]; then
+                echo "U1 stock camera monitor started"
+                return 0
+            fi
+        fi
+
+        COUNT=$((COUNT + 1))
+    done
+
+    echo "WARNING: U1 stock camera monitor did not start"
+    return 1
+}
+
+start_bridge() {
+    if [ -f "$PIDFILE" ]; then
+        PID="$(cat "$PIDFILE" 2>/dev/null)"
+        if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
+            echo "U1 camera bridge already running (PID $PID)"
+            return 0
+        fi
+        rm -f "$PIDFILE"
+    fi
+
+    echo "Starting U1 MJPEG bridge"
+    nohup python3 "$SCRIPT" >> "$LOG" 2>&1 </dev/null &
+    echo $! > "$PIDFILE"
+}
+
+stop_bridge() {
+    if [ -f "$PIDFILE" ]; then
+        PID="$(cat "$PIDFILE" 2>/dev/null)"
+        [ -n "$PID" ] && kill "$PID" 2>/dev/null
+        rm -f "$PIDFILE"
+    fi
+
+    for PID in $(ps | grep "[p]ython3 $SCRIPT" | awk '{print $1}'); do
+        kill "$PID" 2>/dev/null
+    done
+}
+
+stop_camera() {
+    echo "Stopping U1 stock camera monitor"
+
+    mosquitto_pub -h 127.0.0.1 -p 1883 \
+        -t 'camera/request' \
+        -m '{"jsonrpc":"2.0","id":30002,"method":"camera.stop_monitor","params":{"domain":"lan"}}'
+}
+
+case "$1" in
+    start)
+        start_camera
+        start_bridge
+        ;;
+
+    stop)
+        echo "Stopping U1 camera service"
+        stop_bridge
+        stop_camera
+        ;;
+
+    restart)
+        echo "Restarting U1 camera service"
+        stop_bridge
+        stop_camera
+        sleep 1
+        start_camera
+        start_bridge
+        ;;
+
+    status)
+        if [ -f "$PIDFILE" ]; then
+            PID="$(cat "$PIDFILE" 2>/dev/null)"
+            if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
+                echo "U1 CAMERA BRIDGE IS RUNNING (PID $PID)"
+                exit 0
+            fi
+        fi
+
+        echo "U1 CAMERA BRIDGE IS NOT RUNNING"
+        exit 1
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 1
+        ;;
+esac
+
+exit 0
