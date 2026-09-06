@@ -92,3 +92,14 @@ Current release: **v1.0.1**.
 
 - v1.0.1: Adds stale-frame watchdog and rate-limited automatic `camera.start_monitor` recovery. Hardware-tested with four automatic recoveries.
 - v1.0.0: Initial stock-camera Fluidd bridge release.
+
+
+## 🖨️ Support the Project
+
+If this project helped you and you'd like to support continued U1 development, testing, and future projects:
+
+<a href="https://buymeacoffee.com/hacknsniff">
+  <img src="images/buy-me-a-roll-of-filament.png" alt="Buy me a roll of filament" width="600">
+</a>
+
+Every roll helps fund more testing, tinkering, and future U1 projects.
