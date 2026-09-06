@@ -4,6 +4,7 @@
 
 
 A self-contained bridge that exposes the Snapmaker U1 built-in MIPI camera in Fluidd while retaining the stock camera service. No Raspberry Pi, external PC, Docker container, or replacement camera firmware is required.
+Unofficial community project — not affiliated with or endorsed by Snapmaker.
 
 ## What it does
 
@@ -102,4 +103,10 @@ If this project helped you and you'd like to support continued U1 development, t
   <img src="images/buy-me-a-roll-of-filament.png" alt="Buy me a roll of filament" width="600">
 </a>
 
+## Disclaimer
 
+This is an **unofficial community project** and is not affiliated with, endorsed by, or supported by Snapmaker.
+
+This project modifies startup configuration on the Snapmaker U1 and is provided **as-is**. Use it at your own risk. Modifications to your printer may affect support or warranty coverage.
+
+This project does **not** distribute Snapmaker proprietary firmware files. It uses services and interfaces already present in the stock U1 firmware.
