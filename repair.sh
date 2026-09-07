@@ -29,11 +29,12 @@ patch_boot_start() {
 
 [ "$(id -u)" = 0 ] || fail 'Run as root.'
 # repair.sh may be run directly from an extracted release or from the on-printer recovery kit.
-if [ ! -f "$SOURCE_DIR/S64u1-camera" ] || [ ! -f "$SOURCE_DIR/u1_mjpeg_bridge.py" ]; then
+if [ ! -f "$SOURCE_DIR/S64u1-camera" ] || [ ! -f "$SOURCE_DIR/u1_mjpeg_bridge.py" ] || [ ! -f "$SOURCE_DIR/u1_camera_policy.py" ]; then
   SOURCE_DIR="$REC"
 fi
 [ -f "$SOURCE_DIR/S64u1-camera" ] || fail 'Recovery S64u1-camera is missing.'
 [ -f "$SOURCE_DIR/u1_mjpeg_bridge.py" ] || fail 'Recovery Python bridge is missing.'
+[ -f "$SOURCE_DIR/u1_camera_policy.py" ] || fail 'Recovery camera policy module is missing.'
 [ -x /usr/bin/unisrv ] || fail '/usr/bin/unisrv is missing; firmware camera stack changed.'
 command -v mosquitto_pub >/dev/null 2>&1 || fail 'mosquitto_pub is missing; local MQTT interface changed.'
 command -v awk >/dev/null 2>&1 || fail 'awk is missing; cannot safely patch boot configuration.'
@@ -52,11 +53,11 @@ else
 fi
 sh -n "$TMP" || fail 'Proposed S99_bootcontrol patch failed syntax validation.'
 sh -n "$SOURCE_DIR/S64u1-camera" || fail 'Recovery S64 service failed syntax validation.'
-python3 -m py_compile "$SOURCE_DIR/u1_mjpeg_bridge.py" || fail 'Recovery bridge failed Python validation.'
+python3 -m py_compile "$SOURCE_DIR/u1_mjpeg_bridge.py" "$SOURCE_DIR/u1_camera_policy.py" || fail 'Recovery camera files failed Python validation.'
 
 mkdir -p "$REC"
 if [ "$SOURCE_DIR" != "$REC" ]; then
-  for f in install.sh repair.sh status.sh uninstall.sh u1_mjpeg_bridge.py S64u1-camera README.md CHANGELOG.md; do
+  for f in install.sh repair.sh status.sh uninstall.sh u1_mjpeg_bridge.py u1_camera_policy.py S64u1-camera README.md CHANGELOG.md; do
     [ -f "$SOURCE_DIR/$f" ] && cp "$SOURCE_DIR/$f" "$REC/"
   done
   chmod 755 "$REC"/*.sh "$REC/S64u1-camera" "$REC/u1_mjpeg_bridge.py" 2>/dev/null || true
@@ -65,7 +66,9 @@ STAMP=$(date +%Y%m%d%H%M%S)
 cp "$BOOT" "$REC/S99_bootcontrol.before-repair.$STAMP"
 cp "$SOURCE_DIR/S64u1-camera" "$INIT"
 cp "$SOURCE_DIR/u1_mjpeg_bridge.py" "$BASE/u1_mjpeg_bridge.py"
+cp "$SOURCE_DIR/u1_camera_policy.py" "$BASE/u1_camera_policy.py"
 chmod 755 "$INIT" "$BASE/u1_mjpeg_bridge.py"
+chmod 644 "$BASE/u1_camera_policy.py"
 if ! cmp -s "$BOOT" "$TMP"; then
   cp "$TMP" "$BOOT"
 fi
