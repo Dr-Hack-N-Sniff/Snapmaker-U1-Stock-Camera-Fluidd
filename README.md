@@ -31,40 +31,40 @@ The bridge does **not** restart `unisrv`, Klipper, Moonraker, or the printer.
 
 ## Hardware testing
 
-v1.0.2 has been tested on a physical Snapmaker U1 with Fluidd, the Snapmaker desktop application, and the Snapmaker mobile application.
+v1.0.2 has been tested on a physical Snapmaker U1 with Fluidd, **Snapmaker Orca**, and the Snapmaker mobile app.
 
-Testing included approximately **six hours of printing** with the Snapmaker mobile camera in use while desktop camera access remained stable.
+Testing included approximately **six hours of printing** with the Snapmaker mobile camera in use while Snapmaker Orca camera access remained stable.
 
-During a later recovery test, the desktop camera experienced a short failed WAN session. v1.0.2 detected the failed session and released the LAN monitor. The stock camera system then completed a full shutdown.
+During a later recovery test, the camera in Snapmaker Orca experienced a short failed WAN session. v1.0.2 detected the failed session and released the LAN monitor. The stock camera system then completed a full shutdown.
 
 During this hardware test, the complete shutdown took approximately **6 minutes**.
 
-After the stock camera reached a fully stopped state, starting the camera from the Snapmaker mobile app established a fresh stock camera session. Camera access then worked in both the mobile and desktop applications.
+After the stock camera reached a fully stopped state, starting the camera from the Snapmaker mobile app established a fresh stock camera session. Camera access then worked in both the **Snapmaker mobile app and Snapmaker Orca**.
 
 Fluidd camera access continued to operate alongside the stock Snapmaker camera system during testing.
 
 ![Built-in U1 camera working in Fluidd](images/u1-camera-fluidd-working.png)
 
 
-## Snapmaker app camera troubleshooting
+## Snapmaker Orca camera troubleshooting
 
-The Snapmaker camera depends on more than the local Fluidd bridge. Snapmaker application, account, network, and cloud connectivity can also affect camera operation.
+The Snapmaker camera depends on more than the local Fluidd bridge. Snapmaker Orca, the Snapmaker mobile app, account connectivity, network connectivity, and Snapmaker cloud services can also affect camera operation.
 
-If the Snapmaker desktop camera fails to start, avoid repeatedly refreshing or restarting the camera while the stock camera session is resetting.
+If the Snapmaker Orca camera fails to start, avoid repeatedly refreshing or restarting the camera while the stock camera session is resetting.
 
 **A complete stock-camera reset can take approximately 6 minutes.**
 
-If the desktop camera does not recover:
+If the Snapmaker Orca camera does not recover:
 
-1. Stop or close the camera in the Snapmaker desktop application.
+1. Stop or close the camera in Snapmaker Orca.
 2. **Wait at least 6 minutes** for the stock camera session to fully reset. During hardware testing, a complete shutdown took approximately 6 minutes.
 3. Open the Snapmaker mobile app and start the camera.
 4. Confirm that the camera works in the mobile app.
-5. Try the camera from the desktop application again.
+5. Try the camera from Snapmaker Orca again.
 
-During hardware testing, this procedure successfully established a fresh stock camera session and restored camera access in both the mobile and desktop applications.
+During hardware testing, this procedure successfully established a fresh stock camera session and restored camera access in both the Snapmaker mobile app and Snapmaker Orca.
 
-The Snapmaker mobile app is **not required for normal operation**. This is a troubleshooting procedure observed to work during testing, not a guaranteed fix for Snapmaker application, account, network, or cloud-related camera failures.
+The Snapmaker mobile app is **not required for normal operation**. This is a troubleshooting procedure observed to work during testing, not a guaranteed fix for Snapmaker Orca, Snapmaker mobile app, account, network, or cloud-related camera failures.
 
 
 ## Fluidd camera settings
