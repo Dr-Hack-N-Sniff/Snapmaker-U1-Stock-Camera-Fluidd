@@ -11,7 +11,11 @@ grep -q 'SOURCE_DIR=' "$REPAIR" || { echo 'FAIL: repair.sh must select release o
 grep -q 'patch_boot_start' "$REPAIR" || { echo 'FAIL: repair.sh lacks targeted boot patch function'; exit 1; }
 grep -q 'patch_boot_start' "$INSTALL" || { echo 'FAIL: install.sh lacks targeted boot patch function'; exit 1; }
 echo 'PASS: release safety checks'
-grep -q 'install.sh repair.sh status.sh uninstall.sh u1_mjpeg_bridge.py S64u1-camera README.md CHANGELOG.md' "$REPAIR" || { echo 'FAIL: repair.sh must seed the on-printer recovery kit when run from a release'; exit 1; }
+
+grep -q 'install.sh repair.sh status.sh uninstall.sh u1_mjpeg_bridge.py u1_camera_policy.py S64u1-camera README.md CHANGELOG.md' "$REPAIR" || {
+  echo 'FAIL: repair.sh must seed the on-printer recovery kit when run from a release'
+  exit 1
+}
 
 # Regression: a stale monitor.jpg must not suppress start_monitor or count as success.
 S64="$ROOT/S64u1-camera"
@@ -21,11 +25,25 @@ grep -q 'stat -c %Y "\$IMAGE"' "$S64" || { echo 'FAIL: S64 does not verify JPEG 
 grep -q 'NEW_MTIME.*LAST_MTIME' "$S64" || { echo 'FAIL: S64 does not require JPEG timestamp advancement'; exit 1; }
 echo 'PASS: stale-JPEG regression checks'
 
-# v1.0.1 watchdog regression requirements.
+# v1.0.2 watchdog and WAN-session regression requirements.
 BRIDGE="$ROOT/u1_mjpeg_bridge.py"
-grep -q 'STALE_SECONDS' "$BRIDGE" || { echo 'FAIL: bridge lacks stale-frame watchdog threshold'; exit 1; }
-grep -q 'RECOVERY_COOLDOWN' "$BRIDGE" || { echo 'FAIL: bridge lacks recovery rate limit'; exit 1; }
+POLICY="$ROOT/u1_camera_policy.py"
+
+grep -q 'RESET_WINDOW = 90.0' "$POLICY" || { echo 'FAIL: policy lacks 90-second reset window'; exit 1; }
+grep -q 'WAN_RECOVERY_FALLBACK = 600.0' "$POLICY" || { echo 'FAIL: policy lacks WAN recovery fallback'; exit 1; }
+grep -q 'WAN_FAILURE_THRESHOLD = 15.0' "$POLICY" || { echo 'FAIL: policy lacks WAN failure threshold'; exit 1; }
+
 grep -q 'camera.start_monitor' "$BRIDGE" || { echo 'FAIL: bridge cannot request stock monitor recovery'; exit 1; }
-grep -q "camera/request" "$BRIDGE" || { echo 'FAIL: recovery does not use stock local camera RPC topic'; exit 1; }
-grep -q 'watchdog' "$BRIDGE" || { echo 'FAIL: watchdog logging/implementation missing'; exit 1; }
-echo 'PASS: v1.0.1 watchdog checks'
+grep -q 'camera.stop_monitor' "$BRIDGE" || { echo 'FAIL: bridge cannot release stock LAN monitor'; exit 1; }
+grep -q 'unisrv_watchdog' "$BRIDGE" || { echo 'FAIL: bridge lacks WAN-session watcher'; exit 1; }
+grep -q 'next_wan_start_time' "$BRIDGE" || { echo 'FAIL: bridge lacks duplicate WAN-start protection'; exit 1; }
+grep -q 'camera_watchdog' "$BRIDGE" || { echo 'FAIL: bridge lacks camera watchdog'; exit 1; }
+
+echo 'PASS: v1.0.2 watchdog and WAN-session checks'
+
+# v1.0.2 policy-module release requirements.
+[ -f "$POLICY" ] || { echo 'FAIL: v1.0.2 policy module is missing from release'; exit 1; }
+grep -q 'u1_camera_policy.py' "$INSTALL" || { echo 'FAIL: install.sh does not install u1_camera_policy.py'; exit 1; }
+grep -q 'u1_camera_policy.py' "$REPAIR" || { echo 'FAIL: repair.sh does not restore u1_camera_policy.py'; exit 1; }
+
+echo 'PASS: v1.0.2 policy release checks'
