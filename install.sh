@@ -27,7 +27,7 @@ patch_boot_start() {
 }
 
 [ "$(id -u)" = 0 ] || fail 'Run as root.'
-for f in "$HERE/u1_mjpeg_bridge.py" "$HERE/S64u1-camera" "$BOOT"; do
+for f in "$HERE/u1_mjpeg_bridge.py" "$HERE/u1_camera_policy.py" "$HERE/S64u1-camera" "$BOOT"; do
   [ -f "$f" ] || fail "Missing required file: $f"
 done
 command -v mosquitto_pub >/dev/null 2>&1 || fail 'mosquitto_pub not found; unsupported firmware.'
@@ -46,20 +46,22 @@ else
 fi
 sh -n "$TMP" || fail 'Proposed S99_bootcontrol patch failed syntax validation.'
 sh -n "$HERE/S64u1-camera" || fail 'S64 service failed syntax validation.'
-python3 -m py_compile "$HERE/u1_mjpeg_bridge.py" || fail 'Python bridge failed validation.'
+python3 -m py_compile "$HERE/u1_mjpeg_bridge.py" "$HERE/u1_camera_policy.py" || fail 'Python camera files failed validation.'
 
 mkdir -p "$REC"
 STAMP=$(date +%Y%m%d%H%M%S)
 cp "$BOOT" "$REC/S99_bootcontrol.pre-camera.$STAMP"
 cp "$HERE/u1_mjpeg_bridge.py" "$BASE/u1_mjpeg_bridge.py"
+cp "$HERE/u1_camera_policy.py" "$BASE/u1_camera_policy.py"
 cp "$HERE/S64u1-camera" "$INIT"
 chmod 755 "$BASE/u1_mjpeg_bridge.py" "$INIT"
 if ! cmp -s "$BOOT" "$TMP"; then
   cp "$TMP" "$BOOT"
 fi
 cp "$HERE/install.sh" "$HERE/repair.sh" "$HERE/status.sh" "$HERE/uninstall.sh" \
-   "$HERE/u1_mjpeg_bridge.py" "$HERE/S64u1-camera" "$HERE/README.md" "$REC/"
+   "$HERE/u1_mjpeg_bridge.py" "$HERE/u1_camera_policy.py" "$HERE/S64u1-camera" "$HERE/README.md" "$REC/"
 chmod 755 "$REC"/*.sh "$REC/S64u1-camera" "$REC/u1_mjpeg_bridge.py"
+chmod 644 "$REC/u1_camera_policy.py"
 "$INIT" restart
 echo "Installed. Recovery kit saved to $REC"
 echo 'Open Fluidd and configure UI Camera per README.md.'
