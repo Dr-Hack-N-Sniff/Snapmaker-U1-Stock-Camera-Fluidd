@@ -156,6 +156,18 @@ Current release: **v1.0.2**.
   <img src="images/buy-me-a-roll-of-filament.png" alt="Buy me a roll of filament" width="600">
 </a>
 
+## License
+
+This project's original source code is licensed under the
+**GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+Earlier versions of this project were made available under their
+previous licensing terms. Rights already granted under those earlier
+terms are unaffected by this change.
+
+Fluidd, Snapmaker software, and other third-party components remain
+subject to their respective licenses. This project does not relicense
+or distribute those components.
 
 ## Disclaimer
 
