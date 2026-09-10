@@ -28,9 +28,16 @@ BOUNDARY = "frame"
 WATCH_INTERVAL = 1.0
 RESTART_COOLDOWN = 10.0
 
+# Fluidd may wake a stale Snapmaker monitor only while the camera
+# is actually being requested.
+WAKE_COOLDOWN = 30.0
+WAKE_WAIT = 3.0
+
 STATE_LOCK = threading.Lock()
+WAKE_LOCK = threading.Lock()
 wan_start_time = None
 wan_recovery_started = None
+last_demand_wake = 0.0
 
 
 
@@ -210,7 +217,7 @@ def start_stock_monitor():
 
         if result.returncode == 0:
             print(
-                "Camera watchdog requested stock monitor restart",
+                "Requested stock LAN camera monitor start",
                 flush=True,
             )
             return True
@@ -228,6 +235,88 @@ def start_stock_monitor():
         )
 
     return False
+
+
+def ensure_camera_awake():
+    """Wake the stock LAN monitor once when an active Fluidd request
+    finds the shared JPEG source stale.
+    """
+    global last_demand_wake
+
+    try:
+        st = os.stat(IMAGE)
+        before_mtime = st.st_mtime_ns
+        stale_for = max(0.0, time.time() - st.st_mtime)
+    except FileNotFoundError:
+        before_mtime = None
+        stale_for = RESET_WINDOW
+    except OSError as exc:
+        print(f"Demand wake image-stat error: {exc}", flush=True)
+        return False
+
+    if stale_for < RESET_WINDOW:
+        return True
+
+    with WAKE_LOCK:
+        # Another request may have restored the source while we waited.
+        try:
+            st = os.stat(IMAGE)
+            current_mtime = st.st_mtime_ns
+            current_stale = max(0.0, time.time() - st.st_mtime)
+
+            if current_stale < RESET_WINDOW:
+                return True
+
+            before_mtime = current_mtime
+        except FileNotFoundError:
+            before_mtime = None
+        except OSError:
+            pass
+
+        now = time.monotonic()
+
+        if now - last_demand_wake < WAKE_COOLDOWN:
+            return False
+
+        last_demand_wake = now
+
+        print(
+            f"Fluidd requested stale camera source "
+            f"({stale_for:.1f}s); requesting one LAN wake",
+            flush=True,
+        )
+
+        if not start_stock_monitor():
+            return False
+
+        deadline = time.monotonic() + WAKE_WAIT
+
+        while time.monotonic() < deadline:
+            time.sleep(0.1)
+
+            try:
+                st = os.stat(IMAGE)
+
+                if (
+                    before_mtime is None
+                    or st.st_mtime_ns != before_mtime
+                ):
+                    print(
+                        "Fluidd demand wake received a fresh camera frame",
+                        flush=True,
+                    )
+                    return True
+
+            except FileNotFoundError:
+                continue
+            except OSError:
+                continue
+
+        print(
+            "Fluidd demand wake timed out waiting for a fresh frame",
+            flush=True,
+        )
+        return False
 
 
 def camera_watchdog():
@@ -304,18 +393,10 @@ def camera_watchdog():
                 with STATE_LOCK:
                     wan_recovery_started = None
 
-        elif (
-            should_restart_monitor(stale_for)
-            and now - last_restart >= RESTART_COOLDOWN
-        ):
-            print(
-                f"Camera source stale for {stale_for:.1f}s; "
-                "reset window complete, restarting stock monitor",
-                flush=True,
-            )
-
-            start_stock_monitor()
-            last_restart = now
+        elif should_restart_monitor(stale_for):
+            # Normal stale-source recovery is intentionally demand-driven.
+            # An idle Fluidd bridge leaves Snapmaker's camera lifecycle alone.
+            pass
 
         time.sleep(WATCH_INTERVAL)
 
@@ -349,6 +430,8 @@ class Handler(BaseHTTPRequestHandler):
             )
 
     def snapshot(self):
+        ensure_camera_awake()
+
         try:
             with open(IMAGE, "rb") as f:
                 data = f.read()
@@ -379,11 +462,19 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
         last_mtime = None
+        last_wake_check = 0.0
+
+        ensure_camera_awake()
 
         try:
             while True:
                 try:
                     st = os.stat(IMAGE)
+                    now = time.monotonic()
+
+                    if now - last_wake_check >= 1.0:
+                        ensure_camera_awake()
+                        last_wake_check = now
                     mtime = st.st_mtime_ns
 
                     if mtime != last_mtime:

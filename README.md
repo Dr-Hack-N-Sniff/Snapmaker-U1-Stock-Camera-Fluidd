@@ -16,35 +16,28 @@ The U1 stock service (`unisrv`) captures the MIPI camera to `/tmp/.monitor.jpg`.
 The camera has been physically verified at approximately 1 FPS and verified to return automatically after a U1 reboot.
 
 
-## v1.0.2 camera coexistence and recovery
+## v1.0.3 demand-based camera wake
 
-v1.0.2 improves coexistence between the Fluidd camera bridge and the stock Snapmaker camera system.
+v1.0.3 changes normal stale-camera recovery from periodic background restarts to **wake on demand**.
 
-The stale-frame recovery window has been increased to **90 seconds** to avoid unnecessary monitor restarts during temporary interruptions.
+When Fluidd requests a snapshot or opens a stream, the bridge checks the shared `/tmp/.monitor.jpg` frame. If the frame is fresh, it serves it normally. If the frame is stale, the bridge requests **one** stock LAN camera monitor start, waits briefly for a new frame, and applies a cooldown so repeated Fluidd refreshes do not hammer the local MQTT camera interface.
 
-The bridge also observes stock WAN camera sessions through the U1's `unisrv` camera log. When a short failed WAN camera session is detected, the bridge can release its LAN monitor request and allow the stock camera system to fully shut down before a fresh camera session is established.
+If nobody is viewing the Fluidd camera, normal stale-frame recovery does not repeatedly restart the LAN monitor. The existing bounded WAN-session recovery fallback from v1.0.2 remains in place for failed stock-camera sessions.
 
-During this recovery period, normal stale-frame restarts are suppressed so the Snapmaker camera gets the first opportunity to establish a fresh session. A **10-minute fallback** allows Fluidd camera recovery if no stock camera session takes control.
+### Hardware validation
 
-The bridge does **not** restart `unisrv`, Klipper, Moonraker, or the printer.
+The v1.0.3 bridge was tested on a physical Snapmaker U1. During a long-idle test, the shared camera source remained stale for approximately two hours. Opening/using Fluidd generated exactly **one** demand-based LAN wake and a fresh frame arrived immediately afterward. No repeating 90-second LAN restart loop occurred.
 
+Coexistence testing then confirmed:
 
-## Hardware testing
+- Fluidd remained live after demand-based recovery.
+- Snapmaker Orca reconnected after its normal long-idle device/cloud timeout and kept its camera hibernated until Play was selected.
+- Snapmaker Orca camera playback started normally while Fluidd remained live.
+- The Snapmaker mobile app camera also worked.
+- Fluidd, Snapmaker Orca, and the Snapmaker mobile app were verified working concurrently.
+- After a normal U1 reboot, the bridge started through the normal service path and Fluidd camera access returned without an additional demand wake.
 
-v1.0.2 has been tested on a physical Snapmaker U1 with Fluidd, **Snapmaker Orca**, and the Snapmaker mobile app.
-
-Testing included approximately **six hours of printing** with the Snapmaker mobile camera in use while Snapmaker Orca camera access remained stable.
-
-During a later recovery test, the camera in Snapmaker Orca experienced a short failed WAN session. v1.0.2 detected the failed session and released the LAN monitor. The stock camera system then completed a full shutdown.
-
-During this hardware test, the complete shutdown took approximately **6 minutes**.
-
-After the stock camera reached a fully stopped state, starting the camera from the Snapmaker mobile app established a fresh stock camera session. Camera access then worked in both the **Snapmaker mobile app and Snapmaker Orca**.
-
-Fluidd camera access continued to operate alongside the stock Snapmaker camera system during testing.
-
-![Built-in U1 camera working in Fluidd](images/u1-camera-fluidd-working.png)
-
+This is a coexistence improvement, not a replacement for Snapmaker's camera system. The bridge does not modify Snapmaker camera encryption or cloud services and does not restart `unisrv`, Klipper, Moonraker, or the printer.
 
 ## Snapmaker Orca camera troubleshooting
 
@@ -135,17 +128,18 @@ This stops/removes S64 and removes only its boot-hook line. Recovery files are i
 - Uses Python standard library only for the MJPEG bridge.
 - Uses the printer's existing Mosquitto/unisrv camera RPC interface.
 - No private/local IP address is hard-coded in this project.
-- v1.0.2 adds `u1_camera_policy.py` for camera recovery policy.
-- No nginx configuration changes are required for v1.0.2.
+- `u1_camera_policy.py` contains the camera recovery policy used by the bridge.
+- No nginx configuration changes are required for v1.0.3.
 - The bridge does not restart `unisrv`, Klipper, Moonraker, or the printer.
 - Future Snapmaker firmware can change undocumented internal interfaces; use the compatibility checks rather than forcing a repair.
 
 
 ## Release
 
-Current release: **v1.0.2**.
+Current release: **v1.0.3**.
 
-- **v1.0.2:** Improves coexistence with the stock Snapmaker camera, adds WAN-session-aware recovery, a 90-second stale-frame reset window, duplicate WAN-start protection, and a 10-minute recovery fallback.
+- **v1.0.3:** Adds hardware-validated demand-based Fluidd camera wake, replacing normal periodic stale-frame restarts while preserving WAN-session-aware recovery.
+- **v1.0.2:** Improved coexistence with the stock Snapmaker camera, added WAN-session-aware recovery, a 90-second stale-frame reset window, duplicate WAN-start protection, and a 10-minute recovery fallback.
 - **v1.0.1:** Added stale-frame watchdog and rate-limited automatic `camera.start_monitor` recovery. Hardware-tested with four automatic recoveries.
 - **v1.0.0:** Initial stock-camera Fluidd bridge release.
 

@@ -47,3 +47,15 @@ grep -q 'u1_camera_policy.py' "$INSTALL" || { echo 'FAIL: install.sh does not in
 grep -q 'u1_camera_policy.py' "$REPAIR" || { echo 'FAIL: repair.sh does not restore u1_camera_policy.py'; exit 1; }
 
 echo 'PASS: v1.0.2 policy release checks'
+
+# v1.0.3 demand-based wake regression requirements.
+grep -q 'WAKE_COOLDOWN = 30.0' "$BRIDGE" || { echo 'FAIL: bridge lacks demand-wake cooldown'; exit 1; }
+grep -q 'WAKE_WAIT = 3.0' "$BRIDGE" || { echo 'FAIL: bridge lacks bounded demand-wake wait'; exit 1; }
+grep -q 'def ensure_camera_awake' "$BRIDGE" || { echo 'FAIL: bridge lacks demand-based wake helper'; exit 1; }
+grep -q 'Fluidd requested stale camera source' "$BRIDGE" || { echo 'FAIL: bridge lacks stale-demand wake path'; exit 1; }
+grep -q 'Fluidd demand wake received a fresh camera frame' "$BRIDGE" || { echo 'FAIL: bridge lacks fresh-frame confirmation'; exit 1; }
+grep -q 'Normal stale-source recovery is intentionally demand-driven' "$BRIDGE" || { echo 'FAIL: background stale recovery is not demand-driven'; exit 1; }
+! grep -q 'reset window complete, restarting stock monitor' "$BRIDGE" || { echo 'FAIL: old periodic stale restart path remains'; exit 1; }
+grep -q 'ensure_camera_awake()' "$BRIDGE" || { echo 'FAIL: HTTP camera requests do not invoke demand wake'; exit 1; }
+[ "$(grep -c '^def is_wan_start_log_line' "$POLICY")" -eq 1 ] || { echo 'FAIL: WAN-start policy definition must appear exactly once'; exit 1; }
+echo 'PASS: v1.0.3 demand-based wake checks'

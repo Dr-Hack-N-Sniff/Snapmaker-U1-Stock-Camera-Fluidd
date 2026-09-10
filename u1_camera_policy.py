@@ -36,6 +36,7 @@ def is_wan_start_log_line(line):
     )
 
 
+
 WAN_FAILURE_THRESHOLD = 15.0
 
 

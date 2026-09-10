@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.0.3 - 2026-09-09
+
+### Changed
+
+- Replaced normal periodic stale-frame monitor restarts with demand-based Fluidd camera wake.
+- Fluidd now requests one stock LAN camera monitor start only when an active snapshot or stream request encounters a stale shared camera frame.
+- Added a 30-second demand-wake cooldown and a bounded 3-second wait for a fresh frame to prevent repeated MQTT wake requests.
+- Preserved the v1.0.2 WAN-session recovery fallback for failed stock-camera sessions.
+- Updated camera-start logging to describe the action neutrally rather than attributing every request to the watchdog.
+- Removed a duplicate `is_wan_start_log_line()` policy definition with no behavior change.
+- Expanded release-safety regression checks for demand-based wake behavior.
+
+### Hardware Testing
+
+- A physical Snapmaker U1 was left with a stale shared camera source for approximately two hours. An active Fluidd request generated exactly one LAN wake request and immediately received a fresh frame.
+- No repeating 90-second LAN restart loop occurred with the v1.0.3 bridge.
+- Snapmaker Orca reconnected normally after its usual long-idle device/cloud timeout; its camera remained hibernated until Play was selected, then started normally.
+- Fluidd remained live while Snapmaker Orca camera access was active.
+- The Snapmaker mobile app camera also worked, including concurrent operation with Fluidd and Snapmaker Orca.
+- After a normal U1 reboot, the camera bridge was started by the normal boot/service path and Fluidd camera access returned without an additional demand wake.
+
+### Notes
+
+- Demand-based wake reduces unnecessary interaction with Snapmaker's stock camera lifecycle while Fluidd is not being viewed.
+- This release does not claim to modify or replace Snapmaker camera encryption, cloud services, or WAN session handling.
+- The bridge does not restart `unisrv`, Klipper, Moonraker, or the printer.
+
 ## v1.0.2 - 2026-09-07
 
 ### Changed
