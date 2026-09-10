@@ -39,26 +39,15 @@ Coexistence testing then confirmed:
 
 This is a coexistence improvement, not a replacement for Snapmaker's camera system. The bridge does not modify Snapmaker camera encryption or cloud services and does not restart `unisrv`, Klipper, Moonraker, or the printer.
 
-## Snapmaker Orca camera troubleshooting
+Snapmaker Orca and mobile app coexistence
 
-The Snapmaker camera depends on more than the local Fluidd bridge. Snapmaker Orca, the Snapmaker mobile app, account connectivity, network connectivity, and Snapmaker cloud services can also affect camera operation.
+Snapmaker U1 camera sessions used by Fluidd, Snapmaker Orca, and the Snapmaker mobile app have different lifecycle behavior.
 
-If the Snapmaker Orca camera fails to start, avoid repeatedly refreshing or restarting the camera while the stock camera session is resetting.
+Starting with v1.0.3, Fluidd no longer periodically wakes the stock camera while it is idle. If Fluidd requests the camera and the shared image source is stale, the bridge requests a single LAN camera wake.
 
-**A complete stock-camera reset can take approximately 6 minutes.**
+Hardware testing confirmed that Fluidd, Snapmaker Orca, and the Snapmaker mobile app can coexist with this behavior.
 
-If the Snapmaker Orca camera does not recover:
-
-1. Stop or close the camera in Snapmaker Orca.
-2. **Wait at least 6 minutes** for the stock camera session to fully reset. During hardware testing, a complete shutdown took approximately 6 minutes.
-3. Open the Snapmaker mobile app and start the camera.
-4. Confirm that the camera works in the mobile app.
-5. Try the camera from Snapmaker Orca again.
-
-During hardware testing, this procedure successfully established a fresh stock camera session and restored camera access in both the Snapmaker mobile app and Snapmaker Orca.
-
-The Snapmaker mobile app is **not required for normal operation**. This is a troubleshooting procedure observed to work during testing, not a guaranteed fix for Snapmaker Orca, Snapmaker mobile app, account, network, or cloud-related camera failures.
-
+Normal Snapmaker camera hibernation is expected. If Snapmaker Orca reports that the Monitoring Module is hibernated, use Play in Snapmaker Orca to wake its camera session normally.
 
 ## Fluidd camera settings
 
