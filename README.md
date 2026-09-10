@@ -39,7 +39,7 @@ Coexistence testing then confirmed:
 
 This is a coexistence improvement, not a replacement for Snapmaker's camera system. The bridge does not modify Snapmaker camera encryption or cloud services and does not restart `unisrv`, Klipper, Moonraker, or the printer.
 
-Snapmaker Orca and mobile app coexistence
+### Snapmaker Orca and mobile app coexistence
 
 Snapmaker U1 camera sessions used by Fluidd, Snapmaker Orca, and the Snapmaker mobile app have different lifecycle behavior.
 
