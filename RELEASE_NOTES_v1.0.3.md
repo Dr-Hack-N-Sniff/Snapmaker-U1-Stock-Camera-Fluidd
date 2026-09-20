@@ -1,3 +1,33 @@
+# v1.0.4 - Snapmaker U1 Firmware 2.0.0 Compatibility
+
+v1.0.4 validates the existing camera bridge and recovery system on **Snapmaker U1 firmware 2.0.0**.
+
+No camera streaming or demand-wake behavior has changed from v1.0.3.
+
+## Hardware validation
+
+Tested on a physical Snapmaker U1 during an actual firmware upgrade from **1.6.0 to 2.0.0**:
+
+- Persistent camera files under `/oem/printer_data/u1_camera/` survived the firmware update.
+- Firmware 2.0.0 removed the live `/etc/init.d/S64u1-camera` service.
+- The firmware update replaced `S99_bootcontrol`, removing the S64 camera startup hook.
+- The existing recovery kit under `/oem/printer_data/u1_camera/recovery/` survived.
+- The existing `repair.sh` successfully validated the firmware 2.0.0 environment before making changes.
+- `S64u1-camera` was restored.
+- The repair safely added the camera startup hook to firmware 2.0.0's **current** `S99_bootcontrol`.
+- `/etc/init.d/S64u1-camera start` was verified in the current boot configuration.
+- The Fluidd **UI Camera** feed was physically verified working normally after recovery.
+
+## Recovery after firmware 2.0.0
+
+If a firmware update removes the camera service or boot hook, use the existing recovery kit:
+
+```sh
+cd /oem/printer_data/u1_camera/recovery
+./repair.sh
+
+
+
 # v1.0.3 - Demand-Based Camera Wake
 
 v1.0.3 changes normal Fluidd camera recovery from periodic background monitor restarts to **demand-based wake**.
